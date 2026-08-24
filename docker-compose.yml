@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  omnithread-os:
+    build: .
+    container_name: omnithread_production_cluster
+    ports:
+      - "8080:8080"
+    restart: always
+    environment:
+      - PORT=8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

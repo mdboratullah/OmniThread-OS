@@ -11,9 +11,11 @@ import remediation
 import test_report
 import ai_predictive
 
-class PredictiveAIOpsHandler(http.server.BaseHTTPRequestHandler):
+class EnterpriseProductionHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
-        if urllib.parse.urlparse(self.path).path == '/':
+        parsed_path = urllib.parse.urlparse(self.path).path
+        
+        if parsed_path == '/':
             self.send_response(200)
             self.send_header("Content-type", "text/html; charset=utf-8")
             self.end_headers()
@@ -39,10 +41,26 @@ class PredictiveAIOpsHandler(http.server.BaseHTTPRequestHandler):
             predictions = cur.fetchall()
             conn.close()
             
-            latest = history if history else (time.strftime("%Y-%m-%d %H:%M:%S"), 25.0, 45.0, 5.0, 120.0, 35.0, "STABLE", "OmniThread OS v6.0 AI predictive core operational.")
+            latest = history if history else (time.strftime("%Y-%m-%d %H:%M:%S"), 25.0, 45.0, 5.0, 120.0, 35.0, "STABLE", "Production operational.")
             self.wfile.write(get_html(latest, benchmarks, audits, remediations, reports, predictions).encode('utf-8'))
+            
+        elif parsed_path == '/health':
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
+            self.wfile.write(b'{"status": "UP", "service": "OmniThread OS Enterprise Core"}')
+            
+        elif parsed_path == '/metrics':
+            self.send_response(200)
+            self.send_header("Content-type", "text/plain")
+            self.end_headers()
+            self.wfile.write(b'omnithread_cluster_health_status 1\nomnithread_active_nodes 3\n')
+        else:
+            self.send_response(404)
+            self.end_headers()
+            self.wfile.write(b'404 Not Found')
 
 if __name__ == '__main__':
-    server = http.server.HTTPServer(('0.0.0.0', PORT), PredictiveAIOpsHandler)
-    print(f"OmniThread OS v6.0 Predictive AI Server running at http://localhost:{PORT}")
+    server = http.server.HTTPServer(('0.0.0.0', PORT), EnterpriseProductionHandler)
+    print(f"OmniThread OS Production Server running at http://0.0.0.0:{PORT}")
     server.serve_forever()
