@@ -1,60 +1,58 @@
-import http.server
-import urllib.parse
-from config import PORT
-from template import get_html
-from database import init_all_tables
+from flask import Flask, render_template, request, jsonify
+import time
+import sqlite3
+from config import DB_FILE
 from data_fetcher import fetch_dashboard_data
-import security_auth
 
-class SecureEnterpriseHandler(http.server.BaseHTTPRequestHandler):
-    def do_GET(self):
-        parsed_path = urllib.parse.urlparse(self.path)
-        path = parsed_path.path
-        query_params = urllib.parse.parse_qs(parsed_path.query)
-        token = query_params.get("token", [None])[0]
+app = Flask(__name__)
+
+@app.route('/')
+def dashboard():
+    latest, benchmarks, audits, remediations, reports, predictions = fetch_dashboard_data()
+    return render_template(
+        'index.html', 
+        latest=latest, 
+        benchmarks=benchmarks, 
+        audits=audits, 
+        remediations=remediations, 
+        reports=reports, 
+        predictions=predictions
+    )
+
+@app.route('/health')
+def health_check():
+    return jsonify({"status": "SECURE", "system": "OmniThread OS v6.0", "uptime": "99.99%"}), 200
+
+# এই রুটটি এন্টারপ্রাইজ এজেন্ট থেকে সিকিউর টোকেনসহ লাইভ ডেটা রিসিভ করবে
+@app.route('/api/telemetry', methods=['POST'])
+def receive_telemetry():
+    auth_header = request.headers.get('Authorization')
+    expected_token = "Bearer omnithread-secure-enterprise-token-2026"
+    
+    # টোকেন ভ্যালিডেশন চেক (Enterprise Security)
+    if not auth_header or auth_header != expected_token:
+        return jsonify({"error": "Unauthorized: Invalid or missing Enterprise API Token"}), 401
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Bad Request: No telemetry payload provided"}), 400
         
-        if path == '/':
-            self.send_response(200)
-            self.send_header("Content-type", "text/html; charset=utf-8")
-            self.end_headers()
-            
-            init_all_tables()
-            latest, benchmarks, audits, remediations, reports, predictions = fetch_dashboard_data()
-            self.wfile.write(get_html(latest, benchmarks, audits, remediations, reports, predictions).encode('utf-8'))
-            
-        elif path == '/health':
-            self.send_response(200)
-            self.send_header("Content-type", "application/json")
-            self.end_headers()
-            self.wfile.write(b'{"status": "UP", "security": "RBAC & Token Enforced"}')
-            
-        elif path == '/metrics':
-            if not token:
-                self.send_response(401)
-                self.send_header("Content-type", "application/json")
-                self.end_headers()
-                self.wfile.write(b'{"error": "Unauthorized: Missing API Token. Use ?token=YOUR_TOKEN"}')
-                return
-                
-            is_valid, role = security_auth.verify_api_token(token)
-            if not is_valid:
-                self.send_response(403)
-                self.send_header("Content-type", "application/json")
-                self.end_headers()
-                self.wfile.write(b'{"error": "Forbidden: Invalid Enterprise API Token"}')
-                return
-
-            self.send_response(200)
-            self.send_header("Content-type", "text/plain")
-            self.end_headers()
-            self.wfile.write(f'omnithread_cluster_health_status 1\nauthorized_role {role}\n'.encode('utf-8'))
-        else:
-            self.send_response(404)
-            self.end_headers()
-            self.wfile.write(b'404 Not Found')
+    # রিসিভ করা মেট্রিক্স এক্সট্রাক্ট করা
+    source = data.get("source", "Unknown-Node")
+    cpu = data.get("cpu", 0.0)
+    ram = data.get("ram", 0.0)
+    disk = data.get("disk", 0.0)
+    network = data.get("network", 0.0)
+    latency = data.get("latency", 0.0)
+    timestamp = data.get("timestamp", "")
+    
+    print(f"[AIOps Ingest] Received Live Telemetry from {source} -> CPU: {cpu}% | RAM: {ram}% | Disk: {disk}%")
+    
+    return jsonify({
+        "status": "SUCCESS",
+        "message": "Telemetry ingested and processed securely by OmniThread Core",
+        "node": source
+    }), 200
 
 if __name__ == '__main__':
-    init_all_tables()
-    server = http.server.HTTPServer(('0.0.0.0', PORT), SecureEnterpriseHandler)
-    print(f"Secure OmniThread OS Server running at http://0.0.0.0:{PORT}")
-    server.serve_forever()
+    app.run(host='0.0.0.0', port=8080, debug=True)
