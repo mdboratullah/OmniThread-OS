@@ -9,8 +9,9 @@ import benchmark
 import security
 import remediation
 import test_report
+import ai_predictive
 
-class MTTRReportHandler(http.server.BaseHTTPRequestHandler):
+class PredictiveAIOpsHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         if urllib.parse.urlparse(self.path).path == '/':
             self.send_response(200)
@@ -31,14 +32,17 @@ class MTTRReportHandler(http.server.BaseHTTPRequestHandler):
             cur.execute("SELECT id, timestamp, error_event, remediation_action, rollback_status FROM remediation_logs ORDER BY id DESC LIMIT 2")
             remediations = cur.fetchall()
 
-            cur.execute("SELECT id, timestamp, total_failures_detected, successfully_recovered, avg_mttr_seconds, report_status FROM automated_test_reports ORDER BY id DESC LIMIT 3")
+            cur.execute("SELECT id, timestamp, total_failures_detected, successfully_recovered, avg_mttr_seconds, report_status FROM automated_test_reports ORDER BY id DESC LIMIT 2")
             reports = cur.fetchall()
+
+            cur.execute("SELECT id, timestamp, predicted_event, confidence_score, time_to_impact_mins, approval_status FROM predictive_ai_logs ORDER BY id DESC LIMIT 3")
+            predictions = cur.fetchall()
             conn.close()
             
-            latest = history if history else (time.strftime("%Y-%m-%d %H:%M:%S"), 25.0, 45.0, 5.0, 120.0, 35.0, "STABLE", "Initial MTTR report check passed.")
-            self.wfile.write(get_html(latest, benchmarks, audits, remediations, reports).encode('utf-8'))
+            latest = history if history else (time.strftime("%Y-%m-%d %H:%M:%S"), 25.0, 45.0, 5.0, 120.0, 35.0, "STABLE", "OmniThread OS v6.0 AI predictive core operational.")
+            self.wfile.write(get_html(latest, benchmarks, audits, remediations, reports, predictions).encode('utf-8'))
 
 if __name__ == '__main__':
-    server = http.server.HTTPServer(('0.0.0.0', PORT), MTTRReportHandler)
-    print(f"MTTR Enterprise Secured Server running at http://localhost:{PORT}")
+    server = http.server.HTTPServer(('0.0.0.0', PORT), PredictiveAIOpsHandler)
+    print(f"OmniThread OS v6.0 Predictive AI Server running at http://localhost:{PORT}")
     server.serve_forever()
