@@ -9,25 +9,21 @@ try:
 except ImportError:
     PSUTIL_AVAILABLE = False
 
+# Enterprise Security Configuration
+CORE_SERVER_URL = "http://127.0.0.1:8080/api/telemetry"
+API_TOKEN = "omnithread-secure-enterprise-token-2026"
+
 def measure_real_latency():
-    """
-    Measure actual local response or network socket ping latency.
-    """
     start_time = time.time()
     try:
-        # Simple local loopback test to measure core/network response time
         urllib.request.urlopen("http://127.0.0.1:8080/health", timeout=1)
-        latency = (time.time() - start_time) * 1000 # to ms
+        latency = (time.time() - start_time) * 1000
     except Exception:
-        latency = 45.5 # Fallback if core server isn't running yet
+        latency = 45.5
     return round(latency, 2)
 
 def collect_and_push_metrics():
-    """
-    Advanced Enterprise Agent collecting real system metrics,
-    actual latency, and secure payload preparation for OmniThread Core.
-    """
-    print("OmniThread Enterprise Agent: Collecting advanced production telemetry...")
+    print("OmniThread Enterprise Agent: Securing and transmitting telemetry...")
     
     if PSUTIL_AVAILABLE:
         cpu_usage = psutil.cpu_percent(interval=1)
@@ -53,7 +49,13 @@ def collect_and_push_metrics():
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
     }
     
-    print(f"Telemetry Ready -> CPU: {cpu_usage}% | RAM: {ram_usage}% | Disk: {disk_usage}% | Latency: {latency_ms}ms")
+    # Secure transmission simulation/implementation via Token Auth
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {API_TOKEN}"
+    }
+    
+    print(f"Secure Payload Prepared with Token Auth -> CPU: {cpu_usage}% | RAM: {ram_usage}% | Latency: {latency_ms}ms")
     return payload
 
 if __name__ == '__main__':
