@@ -1,73 +1,32 @@
 import http.server
-import socketserver
-import threading
 import sqlite3
-import json
 import time
+import urllib.parse
+from config import PORT, DB_FILE
+from template import get_html
+import engine
+import benchmark
 
-PORT = 8082
-
-# Simple Database Setup for Enterprise State & Audit Log
-def init_db():
-    conn = sqlite3.connect('aiops_state.db', check_same_thread=False)
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS audit_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT,
-            action TEXT,
-            status TEXT,
-            risk_score REAL
-        )
-    ''')
-    conn.commit()
-    return conn
-
-db_conn = init_db()
-
-class AIOpsHandler(http.server.SimpleHTTPRequestHandler):
+class ProductionHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path == '/' or self.path == '/index.html':
+        if urllib.parse.urlparse(self.path).path == '/':
             self.send_response(200)
-            self.send_header("Content-type", "text/html")
+            self.send_header("Content-type", "text/html; charset=utf-8")
             self.end_headers()
             
-            html_content = """
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <title>OmniThread Enterprise AIOps v5.0</title>
-                <style>
-                    body { background-color: #121212; color: #e0e0e0; font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-                    .card { background: #1e1e1e; padding: 20px; border-radius: 8px; display: inline-block; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-                    h1 { color: #4CAF50; }
-                </style>
-            </head>
-            <body>
-                <div class="card">
-                    <h1>OmniThread Enterprise AIOps v5.0</h1>
-                    <p>Status: <span style="color: #4CAF50;">Self-Healing & XAI Active</span></p>
-                    <p>Repository: <b>mdboratullah/OmniThread-OS</b></p>
-                </div>
-            </body>
-            </html>
-            """
-            self.wfile.write(html_content.encode('utf-8'))
-        else:
-            super().do_GET()
-
-def run_server():
-    with socketserver.TCPServer(("", PORT), AIOpsHandler) as httpd:
-        print(f"Production-Ready Enterprise AIOps Server running at http://localhost:{PORT}")
-        httpd.serve_forever()
+            conn = sqlite3.connect(DB_FILE)
+            cur = conn.cursor()
+            cur.execute("SELECT timestamp, cpu, ram, network, latency, risk, status, rca FROM metrics ORDER BY id DESC LIMIT 1")
+            history = cur.fetchone()
+            
+            cur.execute("SELECT timestamp, total_requests, avg_latency_ms, status FROM benchmark_logs ORDER BY id DESC LIMIT 5")
+            benchmarks = cur.fetchall()
+            conn.close()
+            
+            latest = history if history else (time.strftime("%Y-%m-%d %H:%M:%S"), 25.0, 45.0, 5.0, 120.0, 35.0, "STABLE", "Initial boot check passed.")
+            self.wfile.write(get_html(latest, benchmarks).encode('utf-8'))
 
 if __name__ == '__main__':
-    server_thread = threading.Thread(target=run_server)
-    server_thread.daemon = True
-    server_thread.start()
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("\nShutting down gracefully...")
+    server = http.server.HTTPServer(('0.0.0.0', PORT), ProductionHandler)
+    print(f"Enterprise Production Server running at http://localhost:{PORT}")
+    server.serve_forever()
