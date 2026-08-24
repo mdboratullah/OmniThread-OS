@@ -1,38 +1,43 @@
+import sqlite3
 import time
 import random
-import threading
-import sqlite3
 from config import DB_FILE
-from security import log_audit_action
-from remediation import trigger_auto_healing
 
-def telemetry_engine():
-    while True:
-        # Ingesting Real K8s / Prometheus Cluster Metrics
-        cpu = round(random.uniform(25.0, 88.0), 1)
-        ram = round(random.uniform(45.0, 92.0), 1)
-        network = round(random.uniform(3.0, 22.0), 2)
-        latency = round(random.uniform(20.0, 180.0), 1)
-        error_rate = round(random.uniform(0.00, 0.08), 3)
-        
-        risk = round((cpu * 0.35) + (ram * 0.35) + (latency * 0.1) + (error_rate * 100), 2)
-        
-        if risk > 65.0:
-            status = "CRITICAL [K8S CLUSTER ANOMALY]"
-            rca = f"Prometheus Ingest Alert: High node stress detected. Risk index {risk}%. Executing Auto-Healing."
-            log_audit_action("AIOps_Engine", f"Critical anomaly caught. Triggering auto-remediation.")
-            trigger_auto_healing() # Running automated remediation & rollback test
-        else:
-            status = "STABLE [K8S CLUSTER HEALTHY]"
-            rca = "Ingesting live metrics from active Kubernetes worker nodes. Zero system drift."
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS metrics (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TEXT,
+                    cpu REAL,
+                    ram REAL,
+                    network REAL,
+                    latency REAL,
+                    risk REAL,
+                    status TEXT,
+                    rca TEXT
+                )''')
+    conn.commit()
+    conn.close()
 
-        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-        conn = sqlite3.connect(DB_FILE)
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO metrics (timestamp, cpu, ram, network, latency, risk, status, rca) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                       (timestamp, cpu, ram, network, latency, risk, status, rca))
-        conn.commit()
-        conn.close()
-        time.sleep(10)
+def record_cluster_telemetry():
+    init_db()
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    cpu = round(random.uniform(20.0, 78.0), 2)
+    ram = round(random.uniform(35.0, 82.0), 2)
+    network = round(random.uniform(2.0, 15.0), 2)
+    latency = round(random.uniform(40.0, 140.0), 2)
+    
+    risk = round((cpu * 0.4) + (ram * 0.4) + (latency * 0.2) / 2, 2)
+    status = "WARNING [HIGH LOAD]" if risk > 60.0 else "OPTIMIZED [PRODUCTION STABLE]"
+    rca = "Cluster operating within normal telemetry thresholds." if risk <= 60.0 else "Resource saturation detected. Recommended auto-scaling."
 
-threading.Thread(target=telemetry_engine, daemon=True).start()
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO metrics (timestamp, cpu, ram, network, latency, risk, status, rca) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                   (timestamp, cpu, ram, network, latency, risk, status, rca))
+    conn.commit()
+    conn.close()
+
+if __name__ == '__main__':
+    record_cluster_telemetry()
