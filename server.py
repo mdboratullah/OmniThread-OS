@@ -6,8 +6,9 @@ from config import PORT, DB_FILE
 from template import get_html
 import engine
 import benchmark
+import security
 
-class ProductionHandler(http.server.BaseHTTPRequestHandler):
+class EnterpriseHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         if urllib.parse.urlparse(self.path).path == '/':
             self.send_response(200)
@@ -19,14 +20,17 @@ class ProductionHandler(http.server.BaseHTTPRequestHandler):
             cur.execute("SELECT timestamp, cpu, ram, network, latency, risk, status, rca FROM metrics ORDER BY id DESC LIMIT 1")
             history = cur.fetchone()
             
-            cur.execute("SELECT timestamp, total_requests, avg_latency_ms, status FROM benchmark_logs ORDER BY id DESC LIMIT 5")
+            cur.execute("SELECT timestamp, total_requests, avg_latency_ms, status FROM benchmark_logs ORDER BY id DESC LIMIT 3")
             benchmarks = cur.fetchall()
+
+            cur.execute("SELECT id, timestamp, user_role, action_performed, ip_address, status FROM audit_trail ORDER BY id DESC LIMIT 3")
+            audits = cur.fetchall()
             conn.close()
             
-            latest = history if history else (time.strftime("%Y-%m-%d %H:%M:%S"), 25.0, 45.0, 5.0, 120.0, 35.0, "STABLE", "Initial boot check passed.")
-            self.wfile.write(get_html(latest, benchmarks).encode('utf-8'))
+            latest = history if history else (time.strftime("%Y-%m-%d %H:%M:%S"), 25.0, 45.0, 5.0, 120.0, 35.0, "STABLE", "Initial secure boot check passed.")
+            self.wfile.write(get_html(latest, benchmarks, audits).encode('utf-8'))
 
 if __name__ == '__main__':
-    server = http.server.HTTPServer(('0.0.0.0', PORT), ProductionHandler)
-    print(f"Enterprise Production Server running at http://localhost:{PORT}")
+    server = http.server.HTTPServer(('0.0.0.0', PORT), EnterpriseHandler)
+    print(f"Enterprise Secured Production Server running at http://localhost:{PORT}")
     server.serve_forever()
