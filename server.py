@@ -10,12 +10,18 @@ import security
 import remediation
 import test_report
 import ai_predictive
+import security_auth
 
-class EnterpriseProductionHandler(http.server.BaseHTTPRequestHandler):
+class SecureEnterpriseHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
-        parsed_path = urllib.parse.urlparse(self.path).path
+        parsed_path = urllib.parse.urlparse(self.path)
+        path = parsed_path.path
+        query_params = urllib.parse.parse_qs(parsed_path.query)
         
-        if parsed_path == '/':
+        # Security Token Check for Sensitive Endpoints
+        token = query_params.get("token", [None])[0]
+        
+        if path == '/':
             self.send_response(200)
             self.send_header("Content-type", "text/html; charset=utf-8")
             self.end_headers()
@@ -41,26 +47,42 @@ class EnterpriseProductionHandler(http.server.BaseHTTPRequestHandler):
             predictions = cur.fetchall()
             conn.close()
             
-            latest = history if history else (time.strftime("%Y-%m-%d %H:%M:%S"), 25.0, 45.0, 5.0, 120.0, 35.0, "STABLE", "Production operational.")
+            latest = history if history else (time.strftime("%Y-%m-%d %H:%M:%S"), 25.0, 45.0, 5.0, 120.0, 35.0, "STABLE", "Secure operational.")
             self.wfile.write(get_html(latest, benchmarks, audits, remediations, reports, predictions).encode('utf-8'))
             
-        elif parsed_path == '/health':
+        elif path == '/health':
             self.send_response(200)
             self.send_header("Content-type", "application/json")
             self.end_headers()
-            self.wfile.write(b'{"status": "UP", "service": "OmniThread OS Enterprise Core"}')
+            self.wfile.write(b'{"status": "UP", "security": "RBAC & Token Enforced"}')
             
-        elif parsed_path == '/metrics':
+        elif path == '/metrics':
+            # Strict Token Verification for Metrics & API Control
+            if not token:
+                self.send_response(401)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(b'{"error": "Unauthorized: Missing API Token. Use ?token=YOUR_TOKEN"}')
+                return
+                
+            is_valid, role = security_auth.verify_api_token(token)
+            if not is_valid:
+                self.send_response(403)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(b'{"error": "Forbidden: Invalid Enterprise API Token"}')
+                return
+
             self.send_response(200)
             self.send_header("Content-type", "text/plain")
             self.end_headers()
-            self.wfile.write(b'omnithread_cluster_health_status 1\nomnithread_active_nodes 3\n')
+            self.wfile.write(f'omnithread_cluster_health_status 1\nauthorized_role {role}\n'.encode('utf-8'))
         else:
             self.send_response(404)
             self.end_headers()
             self.wfile.write(b'404 Not Found')
 
 if __name__ == '__main__':
-    server = http.server.HTTPServer(('0.0.0.0', PORT), EnterpriseProductionHandler)
-    print(f"OmniThread OS Production Server running at http://0.0.0.0:{PORT}")
+    server = http.server.HTTPServer(('0.0.0.0', PORT), SecureEnterpriseHandler)
+    print(f"Secure OmniThread OS Server running at http://0.0.0.0:{PORT}")
     server.serve_forever()
