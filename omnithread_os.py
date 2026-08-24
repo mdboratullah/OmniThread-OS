@@ -2,7 +2,7 @@ import http.server, socketserver, json, os, time, threading, urllib.request, url
 from datetime import datetime
 
 STATE_FILE = "omnithread_state.json"
-PORT = 8081
+PORT = 8082
 TELEGRAM_BOT_TOKEN = "" # আপনার বোট টোকেন দিলে লাইভ মেসেজ যাবে
 TELEGRAM_CHAT_ID = ""
 
