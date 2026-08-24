@@ -1,16 +1,20 @@
 # 🚀 OmniThread OS Enterprise Pro
 
-**OmniThread OS** হলো একটি লাইটওয়েট, অটো-হিলিং এবং সিঙ্গল-থ্রেড পারসিস্টেন্ট সার্ভার মনিটরিং ড্যাশবোর্ড।
+**OmniThread OS** is a lightweight, self-healing, single-thread persistent server monitoring dashboard. Designed to ensure uninterrupted background service uptime on Android (Termux) and Linux environments.
 
-### ✨ মূল ফিচারসমূহ
-- 📊 Real-Time Web Dashboard
-- ⚡ Auto-Healing Engine
-- 🔔 Telegram Alert System
-- 📜 Persistent System Logs
+### ✨ Core Features
+- 📊 **Real-Time Web Dashboard:** Live service status tracking & cycle logging.
+- ⚡ **Auto-Healing Engine:** Background fault recovery & crash resistance.
+- 🔔 **Telegram Alert System:** Instant notification dispatch upon target failure.
+- 📜 **Persistent System Logs:** Real-time state preservation across sessions.
+- 🛡️ **Zero External Dependency:** Built purely with Python standard libraries.
 
-### 🛠️ কিভাবে চালাবেন
+### 🛠️ Quick Start
 ```bash
 python omnithread_os.py
 ```
 
-http://localhost:8082
+Access dashboard at: `http://localhost:8082`
+
+---
+Developed by **mdboratullah**
