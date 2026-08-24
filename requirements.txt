@@ -1,0 +1,3 @@
+# Core dependencies for OmniThread OS Enterprise
+sqlite3-bro
+urllib3
