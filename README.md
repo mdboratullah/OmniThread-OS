@@ -1,20 +1,19 @@
-# 🚀 OmniThread OS Enterprise Pro
+# 🚀 OmniThread OS Enterprise Pro v1.0
 
-**OmniThread OS** is a lightweight, self-healing, single-thread persistent server monitoring dashboard. Designed to ensure uninterrupted background service uptime on Android (Termux) and Linux environments.
+**OmniThread OS** is a high-performance, self-healing, multi-node enterprise AIaaS and cluster monitoring operating system.
 
-### ✨ Core Features
-- 📊 **Real-Time Web Dashboard:** Live service status tracking & cycle logging.
-- ⚡ **Auto-Healing Engine:** Background fault recovery & crash resistance.
-- 🔔 **Telegram Alert System:** Instant notification dispatch upon target failure.
-- 📜 **Persistent System Logs:** Real-time state preservation across sessions.
-- 🛡️ **Zero External Dependency:** Built purely with Python standard libraries.
+## ✨ Core Features
 
-### 🛠️ Quick Start
+* **📊 Multi-Node Cluster Management:** Real-time tracking and synchronization across multiple production nodes (PROD-01, PROD-02, PROD-03).
+* **⚡ Kubernetes HPA Auto-Scaling:** Dynamic pod and resource scaling triggered under high CPU/RAM workloads.
+* **🔒 Enterprise Security & TLS 1.3:** End-to-end encrypted communication backed by robust JWT authentication.
+* **🛡️ Self-Healing Engine:** Automated fault recovery and uninterrupted service uptime.
+* **🏢 Multi-Tenant & SaaS Ready:** Isolated workspace architecture and subscription billing.
+
+## 🛠️ Quick Start
+
 ```bash
 python omnithread_os.py
 ```
 
-Access dashboard at: `http://localhost:8082`
-
----
 Developed by **mdboratullah**
