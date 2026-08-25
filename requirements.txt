@@ -1,3 +1,26 @@
-# Core dependencies for OmniThread OS Enterprise
-sqlite3-bro
-urllib3
+# ==============================================================================
+# OmniThread OS Enterprise - Core Dependencies
+# ==============================================================================
+# This file contains all Python package requirements for the application.
+# 
+# Installation:
+#   pip install -r requirements.txt
+#
+# For development:
+#   pip install -r requirements.txt -r requirements-dev.txt
+# ==============================================================================
+
+# Core Web Framework
+Flask>=2.3.0,<3.0.0
+
+# System Monitoring
+psutil>=5.9.0
+
+# Environment Configuration (REQUIRED for .env support)
+python-dotenv>=1.0.0
+
+# HTTP Client
+urllib3>=2.0.0
+
+# NOTE: sqlite3 is included with Python standard library
+# Do NOT install as package - use: import sqlite3

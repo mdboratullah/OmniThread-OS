@@ -1,0 +1,29 @@
+# ==============================================================================
+# OmniThread OS - Development Dependencies
+# ==============================================================================
+# Install with: pip install -r requirements.txt -r requirements-dev.txt
+# ==============================================================================
+
+# Testing Framework
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-asyncio>=0.20.0
+
+# Code Quality
+flake8>=5.0.0
+black>=22.0.0
+isort>=5.0.0
+pylint>=2.15.0
+
+# Security
+bandit>=1.7.0
+safety>=2.0.0
+
+# Type Checking
+mypy>=0.990
+
+# Documentation
+Sphinx>=5.0.0
+
+# Debugging
+ipdb>=0.13.0
