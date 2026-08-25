@@ -15,5 +15,9 @@
 ```bash
 python omnithread_os.py
 ```
+Once running, you can access the live dashboard in your browser or Termux environment at:
+👉 http://0.0.0.0:8080
 
+​📞 Contact & Support
+Phone / WhatsApp: +880 16 100 904 36
 Developed by **mdboratullah**
