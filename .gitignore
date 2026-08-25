@@ -1,5 +1,73 @@
+# Python
 __pycache__/
 *.pyc
-*.db
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environment & Configuration (SECURITY CRITICAL)
 .env
+.env.local
+.env.*.local
+.venv
+venv/
+ENV/
+env/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Logs
 *.log
+logs/
+*.log.*
+
+# IDE & Editor
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# OS
+Thumbsb.db
+.DS_Store
+*.tmp
+
+# Project Specific
+omnithread_state.json
+enterprise_production.db
+node_modules/
+dist/
+build/
